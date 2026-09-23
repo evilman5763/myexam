@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>臺灣銀行招考/內檢 - 互動刷題系統</title>
+    <style>
+        /* 淺色模式（預設）變數 */
+        :root {
+            --primary-color: #003366;
+            --secondary-color: #eef2f5;
+            --bg-color: #f4f6f9;
+            --card-bg: #ffffff;
+            --text-color: #333333;
+            --subtext-color: #666666;
+            --border-color: #cccccc;
+            --success-color: #28a745;
+            --danger-color: #dc3545;
+            --result-success-bg: #d4edda;
+            --result-success-color: #155724;
+            --result-success-border: #c3e6cb;
+            --result-danger-bg: #f8d7da;
+            --result-danger-color: #721c24;
+            --result-danger-border: #f5c6cb;
+            --selected-bg: #d0e1f9;
+            --selected-border: #0056b3;
+        }
+
+        /* 深色模式變數覆蓋 */
+        body.dark-theme {
+            --primary-color: #4a90e2;
+            --secondary-color: #2c3e50;
+            --bg-color: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --subtext-color: #aaa;
+            --border-color: #444444;
+            --result-success-bg: #1e3a29;
+            --result-success-color: #81c784;
+            --result-success-border: #2e5b3f;
+            --result-danger-bg: #3c1e1e;
+            --result-danger-color: #e57373;
+            --result-danger-border: #5c2c2c;
+            --selected-bg: #1b3a4b;
+            --selected-border: #4a90e2;
+        }
+
+        body {
+            font-family: "PingFang TC", "Microsoft JhengHei", Arial, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            margin: 0;
+            padding: 20px;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        .container {
+            max-width: 850px;
+            margin: 0 auto;
+            background: var(--card-bg);
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        /* 頂部工具列：放置切換主題按鈕 */
+        .top-bar {
+            display: flex;
+            justify-content: flex-end;
+            margin-bottom: 15px;
+        }
+
+        .theme-toggle-btn {
+            background: var(--secondary-color);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            padding: 6px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: bold;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .theme-toggle-btn:hover {
+            opacity: 0.8;
+            transform: scale(1.03);
+        }
+
+        h1, h2 {
+            text-align: center;
+            color: var(--primary-color);
+            margin-top: 0;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: var(--subtext-color);
+            margin-bottom: 25px;
+        }
+
+        /* 歷史統計面板樣式 */
+        .stats-dashboard {
+            background: var(--secondary-color);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 25px;
+        }
+
+        .stats-title {
+            font-weight: bold;
+            font-size: 18px;
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chapter-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .chapter-stat-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+        }
+
+        .chapter-stat-name {
+            font-weight: bold;
+            color: var(--text-color);
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .chapter-stat-data {
+            display: flex;
+            justify-content: space-between;
+            color: var(--subtext-color);
+        }
+
+        .chapter-stat-acc {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .history-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 10px;
+            border-top: 1px dashed var(--border-color);
+            padding-top: 10px;
+            font-size: 13px;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .clear-btn {
+            background: none;
+            border: none;
+            color: var(--danger-color);
+            cursor: pointer;
+            font-size: 13px;
+            text-decoration: underline;
+        }
+
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .menu-btn {
+            background-color: var(--secondary-color);
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            padding: 15px;
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .menu-btn:hover {
+            background-color: var(--primary-color);
+            color: #ffffff;
+            border-color: var(--primary-color);
+            transform: translateY(-2px);
+        }
+
+        .menu-btn.random-mode {
+            grid-column: 1 / -1;
+            background-color: #0056b3;
+            color: #ffffff;
+            text-align: center;
+            font-size: 18px;
+        }
+
+        body.dark-theme .menu-btn.random-mode {
+            background-color: #1d6fa5;
+        }
+
+        .menu-btn.random-mode:hover {
+            background-color: #003366;
+        }
+
+        /* 模式選擇畫面 */
+        #view-mode-select {
+            text-align: center;
+            background: var(--card-bg);
+            border: 3px dashed var(--primary-color);
+            padding: 25px;
+            border-radius: 10px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .mode-select-box {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            max-width: 450px;
+            margin: 25px auto;
+        }
+
+        .mode-btn {
+            padding: 18px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            transition: transform 0.1s, background-color 0.2s;
+        }
+
+        .mode-btn:hover {
+            transform: scale(1.02);
+        }
+
+        .mode-seq { background-color: #28a745; }
+        .mode-seq:hover { background-color: #218838; }
+
+        .mode-rand { background-color: #0056b3; }
+        .mode-rand:hover { background-color: #003366; }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+			flex-wrap: wrap; /* 螢幕不夠寬時自動換行 */
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 12px;
+            margin-bottom: 20px;
+            gap: 10px;
+        }
+
+        .chapter-tag {
+            background: var(--primary-color);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+		
+		.quiz-footer-theme {
+			text-align: center;
+			margin-top: 25px;
+			padding-top: 15px;
+			border-top: 1px dashed var(--border-color);
+		}
+
+        .question-title {
+            font-size: 18px;
+            font-weight: bold;
+            line-height: 1.5;
+            margin-bottom: 20px;
+            white-space: pre-line;
+        }
+
+        .options-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-btn {
+            padding: 12px 18px;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            background-color: var(--card-bg);
+            color: var(--text-color);
+            font-size: 16px;
+            cursor: pointer;
+            text-align: left;
+            transition: 0.2s;
+        }
+
+        .option-btn:hover {
+            background-color: var(--secondary-color);
+        }
+
+        .option-btn.selected {
+            background-color: var(--selected-bg);
+            border-color: var(--selected-border);
+            font-weight: bold;
+        }
+
+        .submit-multi-btn {
+            margin-top: 15px;
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .submit-multi-btn:hover {
+            background-color: #218838;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 6px;
+            display: none;
+        }
+
+        .result-box.correct {
+            background-color: var(--result-success-bg);
+            color: var(--result-success-color);
+            border: 1px solid var(--result-success-border);
+        }
+
+        .result-box.incorrect {
+            background-color: var(--result-danger-bg);
+            color: var(--result-danger-color);
+            border: 1px solid var(--result-danger-border);
+        }
+
+        .source-info {
+            font-size: 14px;
+            color: var(--subtext-color);
+            margin-top: 8px;
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 30px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 20px;
+        }
+
+        .action-btn {
+            padding: 10px 24px;
+            border: none;
+            border-radius: 6px;
+            background-color: var(--primary-color);
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        .action-btn:disabled {
+            background-color: #888;
+            cursor: not-allowed;
+        }
+
+        .home-btn {
+            background-color: #6c757d;
+        }
+
+        .summary-box {
+            text-align: center;
+        }
+
+        .score-display {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+            margin: 10px 0;
+        }
+
+        .stats-detail {
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        .review-list {
+            text-align: left;
+            margin-top: 30px;
+        }
+
+        .review-item {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 12px;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <!-- 頂部工具列 (防止按鈕壓到下方的測驗資訊) -->
+    <div class="top-bar">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">
+            🌙 深色模式
+        </button>
+    </div>
+
+    <!-- 主選單頁面 -->
+    <div id="view-menu">
+        <h1>臺灣銀行招考/內檢 刷題系統</h1>
+        <div class="subtitle" id="bank-status">載入題庫中...</div>
+
+        <!-- 歷史統計與紀錄看板 -->
+        <div class="stats-dashboard">
+            <div class="stats-title">
+                <span>📊 各篇章測驗統計看板</span>
+                <button class="clear-btn" onclick="clearHistory()">清除紀錄</button>
+            </div>
+            
+            <!-- 分篇章獨立統計網格 -->
+            <div class="chapter-stats-grid" id="chapter-stats-grid">
+                <!-- 由 JS 自動產生 -->
+            </div>
+
+            <!-- 歷次紀錄明細 -->
+            <div style="font-weight: bold; margin-top: 10px; font-size: 14px;">📜 最近測驗紀錄：</div>
+            <div class="history-list" id="history-items">
+                <!-- 歷史紀錄項 -->
+            </div>
+        </div>
+        
+        <div class="menu-grid" id="menu-options">
+            <button class="menu-btn random-mode" onclick="startQuiz('random')">🎲 全篇章隨機亂數 50 題</button>
+            <button class="menu-btn" onclick="selectChapter(1)">第一篇：存匯</button>
+            <button class="menu-btn" onclick="selectChapter(2)">第二篇：授信</button>
+            <button class="menu-btn" onclick="selectChapter(3)">第三篇：外匯</button>
+            <button class="menu-btn" onclick="selectChapter(4)">第四篇：會計</button>
+            <button class="menu-btn" onclick="selectChapter(5)">第五篇：理財</button>
+            <button class="menu-btn" onclick="selectChapter(6)">第六篇：信託</button>
+            <button class="menu-btn" onclick="selectChapter(7)">第七篇：法務常識</button>
+            <button class="menu-btn" onclick="selectChapter(8)">第八篇：數金</button>
+            <button class="menu-btn" onclick="selectChapter(9)">第九篇：電腦常識</button>
+            <button class="menu-btn" onclick="selectChapter(10)">第十篇：企業永續</button>
+        </div>
+    </div>
+
+    <!-- 模式選擇頁面 -->
+    <div id="view-mode-select" class="hidden">
+        <div style="font-size: 14px; color: var(--primary-color); font-weight: bold; margin-bottom: 5px;">【 步驟 2 / 2 】</div>
+        <h2 id="selected-chapter-title">選擇測驗模式</h2>
+        <div class="subtitle">請選擇您要進行的作答方式：</div>
+        
+        <div class="mode-select-box">
+            <button class="mode-btn mode-seq" onclick="startQuizWithMode('sequential')">📝 依序開始測驗 <div style="font-size: 13px; font-weight: normal; margin-top: 4px; opacity: 0.9;">（按照題號順序由頭到尾作答）</div></button>
+            <button class="mode-btn mode-rand" onclick="startQuizWithMode('random')">🔀 亂數開始測驗 <div style="font-size: 13px; font-weight: normal; margin-top: 4px; opacity: 0.9;">（隨機洗牌抽題，最多 50 題）</div></button>
+            <button class="action-btn home-btn" onclick="showMenu()" style="margin-top: 10px; background-color: #6c757d;">⬅ 返回主選單</button>
+        </div>
+    </div>
+
+    <!-- 測驗執行頁面 -->
+    <div id="view-quiz" class="hidden">
+        <!-- 頂部只保留篇章名稱與題號，不再放主題切換按鈕 -->
+    <div class="quiz-header">
+        <span class="chapter-tag" id="quiz-chapter-title">第篇</span>
+        <span id="quiz-progress" style="font-weight: bold; color: var(--primary-color);">題號：1 / 50</span>
+    </div>
+
+    <div class="question-title" id="q-text">載入題目中...</div>
+    <div class="options-container" id="q-options"></div>
+    <div class="result-box" id="q-result"></div>
+
+    <div class="controls">
+        <button class="action-btn home-btn" onclick="showMenu()">回選單</button>
+        <div>
+            <button class="action-btn" id="prev-btn" onclick="prevQuestion()">上一題</button>
+            <button class="action-btn" id="next-btn" onclick="nextQuestion()">下一題</button>
+        </div>
+    </div>
+
+    <!-- 將模式切換按鈕獨立放在最下方，完全不佔用頂部空間 -->
+    <div class="quiz-footer-theme">
+        <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn-quiz">
+            🌙 深色模式
+        </button>
+    </div>
+    </div>
+
+    <!-- 結算頁面 -->
+    <div id="view-summary" class="hidden">
+        <div class="summary-box">
+            <h2>測驗完成！</h2>
+            <div>本次測驗得分</div>
+            <div class="score-display" id="final-score">0 分</div>
+            <div class="stats-detail" id="final-stats"></div>
+
+            <button class="action-btn home-btn" onclick="showMenu()">返回主選單</button>
+
+            <div class="review-list" id="review-container">
+                <h3>錯題檢視與解析</h3>
+                <div id="review-items"></div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- 依序載入 10 個獨立的題庫檔 -->
+<script src="q1.js?v=1"></script>
+<script src="q2.js?v=1"></script>
+<script src="q3.js?v=1"></script>
+<script src="q4.js?v=1"></script>
+<script src="q5.js?v=1"></script>
+<script src="q6.js?v=1"></script>
+<script src="q7.js?v=1"></script>
+<script src="q8.js?v=1"></script>
+<script src="q9.js?v=1"></script>
+<script src="q10.js?v=1"></script>
+
+<script>
+const CHAPTER_NAMES = {
+    0: "全篇章隨機",
+    1: "第一篇 存匯", 2: "第二篇 授信", 3: "第三篇 外匯", 4: "第四篇 會計", 5: "第五篇 理財",
+    6: "第六篇 信託", 7: "第七篇 法務常識", 8: "第八篇 數金", 9: "第九篇 電腦常識", 10: "第十篇 企業永續"
+};
+
+// 切換與初始化深色模式邏輯
+
+function updateThemeBtnText(isDark) {
+    const text = isDark ? '☀️ 淺色模式' : '🌙 深色模式';
+    const btn1 = document.getElementById('theme-btn');
+    const btn2 = document.getElementById('theme-btn-quiz');
+    if (btn1) btn1.innerText = text;
+    if (btn2) btn2.innerText = text;
+}
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme');
+    const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    const isDark = (savedTheme === 'dark' || (!savedTheme && prefersDark));
+    
+    if (isDark) {
+        document.body.classList.add('dark-theme');
+    } else {
+        document.body.classList.remove('dark-theme');
+    }
+    updateThemeBtnText(isDark);
+}
+
+function toggleTheme() {
+    const isDark = document.body.classList.toggle('dark-theme');
+    localStorage.setItem('theme', isDark ? 'dark' : 'light');
+    updateThemeBtnText(isDark);
+}
+
+// 歷史統計管理邏輯
+function getHistory() {
+    return JSON.parse(localStorage.getItem('quizHistory') || '[]');
+}
+
+function saveQuizResult(chapterKey, title, total, correct, score) {
+    const history = getHistory();
+    const newRecord = {
+        chapterKey: chapterKey,
+        date: new Date().toLocaleString('zh-TW', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' }),
+        title: title,
+        total: total,
+        correct: correct,
+        incorrect: total - correct,
+        score: score,
+        accuracy: Math.round((correct / total) * 100)
+    };
+    history.unshift(newRecord);
+    localStorage.setItem('quizHistory', JSON.stringify(history));
+    renderHistoryStats();
+}
+
+function renderHistoryStats() {
+    const history = getHistory();
+    const gridContainer = document.getElementById('chapter-stats-grid');
+    const listContainer = document.getElementById('history-items');
+    
+    let chapStats = {};
+    for (let i = 0; i <= 10; i++) {
+        chapStats[i] = { tests: 0, totalQuestions: 0, totalCorrect: 0 };
+    }
+
+    history.forEach(item => {
+        let key = item.chapterKey !== undefined ? item.chapterKey : 0;
+        if (chapStats[key]) {
+            chapStats[key].tests += 1;
+            chapStats[key].totalQuestions += item.total;
+            chapStats[key].totalCorrect += item.correct;
+        }
+    });
+
+    gridContainer.innerHTML = '';
+    for (let i = 0; i <= 10; i++) {
+        const name = CHAPTER_NAMES[i];
+        const data = chapStats[i];
+        const card = document.createElement('div');
+        card.className = 'chapter-stat-card';
+
+        let accText = '-';
+        if (data.totalQuestions > 0) {
+            const acc = Math.round((data.totalCorrect / data.totalQuestions) * 100);
+            accText = `${acc}%`;
+        }
+
+        card.innerHTML = `
+            <div class="chapter-stat-name" title="${name}">${name}</div>
+            <div class="chapter-stat-data">
+                <span>測驗: <strong>${data.tests}</strong> 次</span>
+                <span class="chapter-stat-acc">正確率: ${accText}</span>
+            </div>
+        `;
+        gridContainer.appendChild(card);
+    }
+
+    if (history.length === 0) {
+        listContainer.innerHTML = '<div style="text-align: center; color: var(--subtext-color); margin-top: 5px;">尚無歷史測驗紀錄</div>';
+        return;
+    }
+
+    listContainer.innerHTML = '';
+    history.slice(0, 10).forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'history-item';
+        div.innerHTML = `
+            <span><strong>${item.title}</strong> (${item.date})</span>
+            <span>得分：<strong>${item.score}分</strong> (對:${item.correct} / 錯:${item.incorrect}) - 答對率 ${item.accuracy}%</span>
+        `;
+        listContainer.appendChild(div);
+    });
+}
+
+function clearHistory() {
+    if (confirm('確定要清除所有各篇章歷史測驗統計紀錄嗎？')) {
+        localStorage.removeItem('quizHistory');
+        renderHistoryStats();
+    }
+}
+
+// 初始化
+initTheme();
+
+let currentQuestions = [];
+let currentIndex = 0;
+let userAnswers = {};
+let pendingChapter = null; 
+let currentQuizTitle = "";
+let currentChapterKey = 0;
+
+window.onload = function() {
+    renderHistoryStats();
+    if (typeof questionBank !== 'undefined' && Object.keys(questionBank).length > 0) {
+        let totalCount = 0;
+        for (let chap in questionBank) {
+            totalCount += questionBank[chap].length;
+        }
+        document.getElementById("bank-status").innerText = `題庫載入成功！目前共有 ${totalCount} 題。`;
+    } else {
+        document.getElementById("bank-status").innerText = "⚠️ 未檢測到題庫檔案（q1.js ~ q10.js），請確認檔案是否放置於相同目錄中。";
+    }
+};
+
+function showMenu() {
+    renderHistoryStats();
+    document.getElementById("view-menu").classList.remove("hidden");
+    document.getElementById("view-mode-select").classList.add("hidden");
+    document.getElementById("view-quiz").classList.add("hidden");
+    document.getElementById("view-summary").classList.add("hidden");
+}
+
+function selectChapter(chapter) {
+    pendingChapter = chapter;
+    const chapName = CHAPTER_NAMES[chapter] || `第 ${chapter} 篇`;
+    document.getElementById("selected-chapter-title").innerText = `${chapName}`;
+    
+    document.getElementById("view-menu").classList.add("hidden");
+    document.getElementById("view-mode-select").classList.remove("hidden");
+}
+
+function startQuiz(chapter) {
+    if (typeof questionBank === 'undefined') {
+        alert("請先建立題庫檔案！");
+        return;
+    }
+
+    userAnswers = {};
+    currentIndex = 0;
+
+    let rawPool = [];
+    if (chapter === 'random') {
+        for (let c in questionBank) {
+            rawPool = rawPool.concat(questionBank[c]);
+        }
+        currentChapterKey = 0;
+        currentQuizTitle = "全篇章隨機 50 題";
+        document.getElementById("quiz-chapter-title").innerText = currentQuizTitle;
+        let shuffled = [...rawPool].sort(() => Math.random() - 0.5);
+        currentQuestions = shuffled.slice(0, 50);
+        
+        launchQuizView();
+    }
+}
+
+function startQuizWithMode(mode) {
+    if (typeof questionBank === 'undefined') {
+        alert("請先建立題庫檔案！");
+        return;
+    }
+
+    userAnswers = {};
+    currentIndex = 0;
+
+    let chapter = pendingChapter;
+    currentChapterKey = chapter;
+    let rawPool = questionBank[chapter] || [];
+    const chapName = CHAPTER_NAMES[chapter] || `第 ${chapter} 篇`;
+
+    if (rawPool.length === 0) {
+        alert("該篇章目前尚無題目（或尚未建立該篇的 .js 檔案）！");
+        showMenu();
+        return;
+    }
+
+    if (mode === 'sequential') {
+        currentQuestions = [...rawPool];
+        currentQuizTitle = `${chapName} (依序)`;
+    } else {
+        let shuffled = [...rawPool].sort(() => Math.random() - 0.5);
+        currentQuestions = shuffled.slice(0, 50);
+        currentQuizTitle = `${chapName} (亂數)`;
+    }
+
+    document.getElementById("quiz-chapter-title").innerText = currentQuizTitle;
+    launchQuizView();
+}
+
+function launchQuizView() {
+    document.getElementById("view-menu").classList.add("hidden");
+    document.getElementById("view-mode-select").classList.add("hidden");
+    document.getElementById("view-summary").classList.add("hidden");
+    document.getElementById("view-quiz").classList.remove("hidden");
+
+    renderQuestion();
+}
+
+function renderQuestion() {
+    const qData = currentQuestions[currentIndex];
+    const isMulti = Array.isArray(qData.ans);
+    
+    document.getElementById("q-text").innerText = `${currentIndex + 1}. ${qData.q}`;
+    document.getElementById("quiz-progress").innerText = `題號：${currentIndex + 1} / ${currentQuestions.length}`;
+
+    const optionsContainer = document.getElementById("q-options");
+    optionsContainer.innerHTML = "";
+
+    const resultBox = document.getElementById("q-result");
+    resultBox.style.display = "none";
+
+    let savedAns = userAnswers[currentIndex];
+
+    if (isMulti) {
+        let selectedSet = new Set(Array.isArray(savedAns) ? savedAns : []);
+
+        qData.options.forEach((optText, optIdx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn" + (selectedSet.has(optIdx) ? " selected" : "");
+            btn.innerText = optText;
+            btn.onclick = () => {
+                if (selectedSet.has(optIdx)) {
+                    selectedSet.delete(optIdx);
+                    btn.classList.remove("selected");
+                } else {
+                    selectedSet.add(optIdx);
+                    btn.classList.add("selected");
+                }
+            };
+            optionsContainer.appendChild(btn);
+        });
+
+        const submitBtn = document.createElement("button");
+        submitBtn.className = "submit-multi-btn";
+        submitBtn.innerText = "確認提交答案";
+        submitBtn.onclick = () => {
+            const finalArr = Array.from(selectedSet).sort((a, b) => a - b);
+            userAnswers[currentIndex] = finalArr;
+            showResult(finalArr);
+        };
+        optionsContainer.appendChild(submitBtn);
+
+    } else {
+        qData.options.forEach((optText, optIdx) => {
+            const btn = document.createElement("button");
+            btn.className = "option-btn" + (savedAns === optIdx ? " selected" : "");
+            btn.innerText = optText;
+            btn.onclick = () => selectSingleOption(optIdx);
+            optionsContainer.appendChild(btn);
+        });
+    }
+
+    if (savedAns !== undefined) {
+        showResult(savedAns);
+    }
+
+    document.getElementById("prev-btn").disabled = currentIndex === 0;
+    const nextBtn = document.getElementById("next-btn");
+    nextBtn.innerText = (currentIndex === currentQuestions.length - 1) ? "完成交卷" : "下一題";
+}
+
+function selectSingleOption(optIdx) {
+    userAnswers[currentIndex] = optIdx;
+    renderQuestion();
+}
+
+function checkIsCorrect(userAns, correctAns) {
+    if (Array.isArray(correctAns)) {
+        if (!Array.isArray(userAns)) return false;
+        if (userAns.length !== correctAns.length) return false;
+        const sortedUser = [...userAns].sort((a, b) => a - b);
+        const sortedCorrect = [...correctAns].sort((a, b) => a - b);
+        return sortedUser.every((val, index) => val === sortedCorrect[index]);
+    } else {
+        return userAns === correctAns;
+    }
+}
+
+function formatOptionText(options, ans) {
+    if (Array.isArray(ans)) {
+        return ans.map(i => options[i]).join("、");
+    }
+    return options[ans];
+}
+
+function showResult(selectedAns) {
+    const qData = currentQuestions[currentIndex];
+    const resultBox = document.getElementById("q-result");
+    const isCorrect = checkIsCorrect(selectedAns, qData.ans);
+
+    if (isCorrect) {
+        resultBox.className = "result-box correct";
+        resultBox.innerHTML = `<strong>恭喜答對！</strong><div class="source-info">出處：${qData.source || '本行業務手續規定'}</div>`;
+    } else {
+        resultBox.className = "result-box incorrect";
+        const correctStr = formatOptionText(qData.options, qData.ans);
+        resultBox.innerHTML = `<strong>答錯了！</strong> 正確答案是：${correctStr}<div class="source-info">出處：${qData.source || '本行業務手續規定'}</div>`;
+    }
+    resultBox.style.display = "block";
+}
+
+function nextQuestion() {
+    if (currentIndex < currentQuestions.length - 1) {
+        currentIndex++;
+        renderQuestion();
+    } else {
+        finishQuiz();
+    }
+}
+
+function prevQuestion() {
+    if (currentIndex > 0) {
+        currentIndex--;
+        renderQuestion();
+    }
+}
+
+function finishQuiz() {
+    document.getElementById("view-quiz").classList.add("hidden");
+    document.getElementById("view-summary").classList.remove("hidden");
+
+    let correctCount = 0;
+    const reviewItemsContainer = document.getElementById("review-items");
+    reviewItemsContainer.innerHTML = "";
+
+    currentQuestions.forEach((q, idx) => {
+        const uAns = userAnswers[idx];
+        const isCorrect = checkIsCorrect(uAns, q.ans);
+
+        if (isCorrect) {
+            correctCount++;
+        } else {
+            const item = document.createElement("div");
+            item.className = "review-item";
+
+            let userAnsStr = "未作答";
+            if (uAns !== undefined) {
+                userAnsStr = formatOptionText(q.options, uAns);
+            }
+            let correctAnsStr = formatOptionText(q.options, q.ans);
+
+            item.innerHTML = `
+                <div><strong>${idx + 1}. ${q.q}</strong></div>
+                <div style="color: #dc3545; margin-top: 5px;">你的回答：${userAnsStr}</div>
+                <div style="color: #28a745;">正確答案：${correctAnsStr}</div>
+                <div class="source-info">出處：${q.source || '本行業務手續規定'}</div>
+            `;
+            reviewItemsContainer.appendChild(item);
+        }
+    });
+
+    const totalQuestions = currentQuestions.length;
+    const incorrectCount = totalQuestions - correctCount;
+    const accuracyRate = Math.round((correctCount / totalQuestions) * 100);
+    const score = accuracyRate;
+
+    document.getElementById("final-score").innerText = `${score} 分`;
+    document.getElementById("final-stats").innerHTML = `
+        共 <strong>${totalQuestions}</strong> 題 | 
+        答對 <strong style="color: #28a745;">${correctCount}</strong> 題 | 
+        答錯/未答 <strong style="color: #dc3545;">${incorrectCount}</strong> 題 | 
+        正確率 <strong style="color: var(--primary-color);">${accuracyRate}%</strong>
+    `;
+
+    saveQuizResult(currentChapterKey, currentQuizTitle, totalQuestions, correctCount, score);
+
+    if (correctCount === totalQuestions) {
+        reviewItemsContainer.innerHTML = "<p style='color: #28a745;'>太棒了！本次測驗全對，沒有錯題！</p>";
+    }
+}
+</script>
+
+</body>
+</html>
