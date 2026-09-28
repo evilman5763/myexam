@@ -68,7 +68,7 @@ window.questionBank[5] = [
             "(2) 16小時",
             "(3) 8小時"
         ],
-        ans: 0,
+        ans: 2,
         source: "財富管理業務人員管理要點"
     },
     {
@@ -1118,7 +1118,7 @@ window.questionBank[5] = [
             "(2) 2年",
             "(3) 3年"
         ],
-        ans: 1,
+        ans: 0,
         source: "產險要保文件保管與銷毀作業規範"
     },
     {
