@@ -275,7 +275,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-			flex-wrap: wrap; /* 螢幕不夠寬時自動換行 */
+            flex-wrap: wrap; 
             border-bottom: 2px solid var(--secondary-color);
             padding-bottom: 12px;
             margin-bottom: 20px;
@@ -290,12 +290,12 @@
             font-size: 14px;
         }
 		
-		.quiz-footer-theme {
-			text-align: center;
-			margin-top: 25px;
-			padding-top: 15px;
-			border-top: 1px dashed var(--border-color);
-		}
+        .quiz-footer-theme {
+            text-align: center;
+            margin-top: 25px;
+            padding-top: 15px;
+            border-top: 1px dashed var(--border-color);
+        }
 
         .question-title {
             font-size: 18px;
@@ -438,7 +438,7 @@
 <body>
 
 <div class="container">
-    <!-- 頂部工具列 (防止按鈕壓到下方的測驗資訊) -->
+    <!-- 頂部工具列 -->
     <div class="top-bar">
         <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn">
             🌙 深色模式
@@ -449,6 +449,29 @@
     <div id="view-menu">
         <h1>臺灣銀行招考/內檢 刷題系統</h1>
         <div class="subtitle" id="bank-status">載入題庫中...</div>
+
+        <!-- 指定題號直達面板 -->
+        <div class="stats-dashboard" style="margin-bottom: 20px;">
+            <div class="stats-title">
+                <span>🎯 指定題號直達</span>
+            </div>
+            <div style="display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 10px;">
+                <select id="jump-chapter-select" style="padding: 9px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); flex: 1; min-width: 160px; font-size: 14px;">
+                    <option value="1">第一篇：存匯</option>
+                    <option value="2">第二篇：授信</option>
+                    <option value="3">第三篇：外匯</option>
+                    <option value="4">第四篇：會計</option>
+                    <option value="5">第五篇：理財</option>
+                    <option value="6">第六篇：信託</option>
+                    <option value="7">第七篇：法務常識</option>
+                    <option value="8">第八篇：數金</option>
+                    <option value="9">第九篇：電腦常識</option>
+                    <option value="10">第十篇：企業永續</option>
+                </select>
+                <input type="number" id="jump-q-num" placeholder="輸入題號 (例: 1)" min="1" style="padding: 9px; border-radius: 6px; border: 1px solid var(--border-color); background: var(--card-bg); color: var(--text-color); width: 130px; font-size: 14px;" />
+                <button class="action-btn" onclick="jumpToSpecificQuestion()" style="padding: 9px 18px; font-size: 14px;">直達該題</button>
+            </div>
+        </div>
 
         <!-- 歷史統計與紀錄看板 -->
         <div class="stats-dashboard">
@@ -499,30 +522,28 @@
 
     <!-- 測驗執行頁面 -->
     <div id="view-quiz" class="hidden">
-        <!-- 頂部只保留篇章名稱與題號，不再放主題切換按鈕 -->
-    <div class="quiz-header">
-        <span class="chapter-tag" id="quiz-chapter-title">第篇</span>
-        <span id="quiz-progress" style="font-weight: bold; color: var(--primary-color);">題號：1 / 50</span>
-    </div>
-
-    <div class="question-title" id="q-text">載入題目中...</div>
-    <div class="options-container" id="q-options"></div>
-    <div class="result-box" id="q-result"></div>
-
-    <div class="controls">
-        <button class="action-btn home-btn" onclick="showMenu()">回選單</button>
-        <div>
-            <button class="action-btn" id="prev-btn" onclick="prevQuestion()">上一題</button>
-            <button class="action-btn" id="next-btn" onclick="nextQuestion()">下一題</button>
+        <div class="quiz-header">
+            <span class="chapter-tag" id="quiz-chapter-title">第篇</span>
+            <span id="quiz-progress" style="font-weight: bold; color: var(--primary-color);">題號：1 / 50</span>
         </div>
-    </div>
 
-    <!-- 將模式切換按鈕獨立放在最下方，完全不佔用頂部空間 -->
-    <div class="quiz-footer-theme">
-        <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn-quiz">
-            🌙 深色模式
-        </button>
-    </div>
+        <div class="question-title" id="q-text">載入題目中...</div>
+        <div class="options-container" id="q-options"></div>
+        <div class="result-box" id="q-result"></div>
+
+        <div class="controls">
+            <button class="action-btn home-btn" onclick="showMenu()">回選單</button>
+            <div>
+                <button class="action-btn" id="prev-btn" onclick="prevQuestion()">上一題</button>
+                <button class="action-btn" id="next-btn" onclick="nextQuestion()">下一題</button>
+            </div>
+        </div>
+
+        <div class="quiz-footer-theme">
+            <button class="theme-toggle-btn" onclick="toggleTheme()" id="theme-btn-quiz">
+                🌙 深色模式
+            </button>
+        </div>
     </div>
 
     <!-- 結算頁面 -->
@@ -563,8 +584,6 @@ const CHAPTER_NAMES = {
     6: "第六篇 信託", 7: "第七篇 法務常識", 8: "第八篇 數金", 9: "第九篇 電腦常識", 10: "第十篇 企業永續"
 };
 
-// 切換與初始化深色模式邏輯
-
 function updateThemeBtnText(isDark) {
     const text = isDark ? '☀️ 淺色模式' : '🌙 深色模式';
     const btn1 = document.getElementById('theme-btn');
@@ -592,7 +611,6 @@ function toggleTheme() {
     updateThemeBtnText(isDark);
 }
 
-// 歷史統計管理邏輯
 function getHistory() {
     return JSON.parse(localStorage.getItem('quizHistory') || '[]');
 }
@@ -680,7 +698,6 @@ function clearHistory() {
     }
 }
 
-// 初始化
 initTheme();
 
 let currentQuestions = [];
@@ -772,6 +789,44 @@ function startQuizWithMode(mode) {
         currentQuestions = shuffled.slice(0, 50);
         currentQuizTitle = `${chapName} (亂數)`;
     }
+
+    document.getElementById("quiz-chapter-title").innerText = currentQuizTitle;
+    launchQuizView();
+}
+
+// 新增：指定題號直達功能函式
+function jumpToSpecificQuestion() {
+    if (typeof questionBank === 'undefined') {
+        alert("請先建立題庫檔案！");
+        return;
+    }
+
+    const chapter = parseInt(document.getElementById('jump-chapter-select').value);
+    const qNum = parseInt(document.getElementById('jump-q-num').value);
+
+    if (isNaN(qNum) || qNum < 1) {
+        alert("請輸入有效的題號（大於或等於 1 的數字）！");
+        return;
+    }
+
+    const rawPool = questionBank[chapter] || [];
+    if (rawPool.length === 0) {
+        alert("該篇章目前尚無題目！");
+        return;
+    }
+
+    if (qNum > rawPool.length) {
+        alert(`輸入錯誤！該篇章目前僅有 1 至 ${rawPool.length} 題。`);
+        return;
+    }
+
+    userAnswers = {};
+    currentChapterKey = chapter;
+    const chapName = CHAPTER_NAMES[chapter] || `第 ${chapter} 篇`;
+    currentQuizTitle = `${chapName} (指定第 ${qNum} 題)`;
+    
+    currentQuestions = [...rawPool];
+    currentIndex = qNum - 1; // 轉為 0-based 索引
 
     document.getElementById("quiz-chapter-title").innerText = currentQuizTitle;
     launchQuizView();
@@ -878,13 +933,18 @@ function showResult(selectedAns) {
     const resultBox = document.getElementById("q-result");
     const isCorrect = checkIsCorrect(selectedAns, qData.ans);
 
+    let detailHtml = "";
+    if (qData.detail) {
+        detailHtml = `<div class="detail-info" style="margin-top: 8px; border-top: 1px dashed var(--border-color); padding-top: 6px; font-size: 14px; line-height: 1.5; color: var(--text-color);">💡 <strong>詳解：</strong>${qData.detail}</div>`;
+    }
+
     if (isCorrect) {
         resultBox.className = "result-box correct";
-        resultBox.innerHTML = `<strong>恭喜答對！</strong><div class="source-info">出處：${qData.source || '本行業務手續規定'}</div>`;
+        resultBox.innerHTML = `<strong>恭喜答對！</strong><div class="source-info">出處：${qData.source || '本行業務手續規定'}</div>${detailHtml}`;
     } else {
         resultBox.className = "result-box incorrect";
         const correctStr = formatOptionText(qData.options, qData.ans);
-        resultBox.innerHTML = `<strong>答錯了！</strong> 正確答案是：${correctStr}<div class="source-info">出處：${qData.source || '本行業務手續規定'}</div>`;
+        resultBox.innerHTML = `<strong>答錯了！</strong> 正確答案是：${correctStr}<div class="source-info">出處：${qData.source || '本行業務手續規定'}</div>${detailHtml}`;
     }
     resultBox.style.display = "block";
 }
@@ -929,11 +989,17 @@ function finishQuiz() {
             }
             let correctAnsStr = formatOptionText(q.options, q.ans);
 
+            let detailHtml = "";
+            if (q.detail) {
+                detailHtml = `<div class="detail-info" style="margin-top: 8px; border-top: 1px dashed var(--border-color); padding-top: 6px; font-size: 14px; line-height: 1.5;">💡 <strong>詳解：</strong>${q.detail}</div>`;
+            }
+
             item.innerHTML = `
                 <div><strong>${idx + 1}. ${q.q}</strong></div>
                 <div style="color: #dc3545; margin-top: 5px;">你的回答：${userAnsStr}</div>
                 <div style="color: #28a745;">正確答案：${correctAnsStr}</div>
                 <div class="source-info">出處：${q.source || '本行業務手續規定'}</div>
+                ${detailHtml}
             `;
             reviewItemsContainer.appendChild(item);
         }
