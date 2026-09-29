@@ -738,7 +738,7 @@ window.questionBank[3] = [
             "(2) 7個",
             "(3) 5個"
         ],
-        ans: 2,
+        ans: 0,
         source: "URR 725第11條"
     },
     {
