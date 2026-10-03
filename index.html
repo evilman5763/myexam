@@ -1024,6 +1024,24 @@ function finishQuiz() {
         reviewItemsContainer.innerHTML = "<p style='color: #28a745;'>太棒了！本次測驗全對，沒有錯題！</p>";
     }
 }
+
+/* 新增：鍵盤左右鍵快捷鍵監聽 */
+document.addEventListener('keydown', function(event) {
+    // 避免在輸入框打字時誤觸
+    if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') {
+        return;
+    }
+
+    const quizView = document.getElementById('view-quiz');
+    if (quizView && !quizView.classList.contains('hidden')) {
+        if (event.key === 'ArrowRight') {
+            nextQuestion();
+        } else if (event.key === 'ArrowLeft') {
+            prevQuestion();
+        }
+    }
+});
+
 </script>
 
 </body>
