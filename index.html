@@ -24,6 +24,7 @@
             --result-danger-border: #f5c6cb;
             --selected-bg: #d0e1f9;
             --selected-border: #0056b3;
+            --keyboard-focus-border: #ff9800; /* 鍵盤上下鍵移動時的提示外框顏色 */
         }
 
         /* 深色模式變數覆蓋 */
@@ -43,6 +44,7 @@
             --result-danger-border: #5c2c2c;
             --selected-bg: #1b3a4b;
             --selected-border: #4a90e2;
+            --keyboard-focus-border: #ffb74d;
         }
 
         body {
@@ -331,6 +333,12 @@
             background-color: var(--selected-bg);
             border-color: var(--selected-border);
             font-weight: bold;
+        }
+
+        /* 鍵盤上下鍵移動時產生的焦點提示外框 */
+        .option-btn.keyboard-focus {
+            border: 2px solid var(--keyboard-focus-border) !important;
+            box-shadow: 0 0 5px rgba(255, 152, 0, 0.5);
         }
 
         .submit-multi-btn {
@@ -706,6 +714,7 @@ let userAnswers = {};
 let pendingChapter = null; 
 let currentQuizTitle = "";
 let currentChapterKey = 0;
+let keyboardFocusIndex = 0; // 新增：追蹤目前鍵盤移動到的選項位置
 
 window.onload = function() {
     renderHistoryStats();
@@ -794,7 +803,6 @@ function startQuizWithMode(mode) {
     launchQuizView();
 }
 
-// 新增：指定題號直達功能函式
 function jumpToSpecificQuestion() {
     if (typeof questionBank === 'undefined') {
         alert("請先建立題庫檔案！");
@@ -826,7 +834,7 @@ function jumpToSpecificQuestion() {
     currentQuizTitle = `${chapName} (指定第 ${qNum} 題)`;
     
     currentQuestions = [...rawPool];
-    currentIndex = qNum - 1; // 轉為 0-based 索引
+    currentIndex = qNum - 1;
 
     document.getElementById("quiz-chapter-title").innerText = currentQuizTitle;
     launchQuizView();
@@ -855,15 +863,18 @@ function renderQuestion() {
     resultBox.style.display = "none";
 
     let savedAns = userAnswers[currentIndex];
+    keyboardFocusIndex = 0; // 每次換題或重新渲染時，重設焦點在第一個選項
 
     if (isMulti) {
         let selectedSet = new Set(Array.isArray(savedAns) ? savedAns : []);
 
         qData.options.forEach((optText, optIdx) => {
             const btn = document.createElement("button");
-            btn.className = "option-btn" + (selectedSet.has(optIdx) ? " selected" : "");
+            btn.className = "option-btn" + (selectedSet.has(optIdx) ? " selected" : "") + (optIdx === 0 ? " keyboard-focus" : "");
             btn.innerText = optText;
             btn.onclick = () => {
+                keyboardFocusIndex = optIdx;
+                updateKeyboardFocus();
                 if (selectedSet.has(optIdx)) {
                     selectedSet.delete(optIdx);
                     btn.classList.remove("selected");
@@ -888,7 +899,7 @@ function renderQuestion() {
     } else {
         qData.options.forEach((optText, optIdx) => {
             const btn = document.createElement("button");
-            btn.className = "option-btn" + (savedAns === optIdx ? " selected" : "");
+            btn.className = "option-btn" + (savedAns === optIdx ? " selected" : "") + (optIdx === 0 ? " keyboard-focus" : "");
             btn.innerText = optText;
             btn.onclick = () => selectSingleOption(optIdx);
             optionsContainer.appendChild(btn);
@@ -904,7 +915,25 @@ function renderQuestion() {
     nextBtn.innerText = (currentIndex === currentQuestions.length - 1) ? "完成交卷" : "下一題";
 }
 
+// 新增：更新畫面上各選項的鍵盤焦點框線
+function updateKeyboardFocus() {
+    const qData = currentQuestions[currentIndex];
+    const optionsContainer = document.getElementById("q-options");
+    // 找出所有選項按鈕（排除可能存在的確認提交按鈕）
+    const optionBtns = optionsContainer.querySelectorAll(".option-btn");
+    
+    optionBtns.forEach((btn, idx) => {
+        if (idx === keyboardFocusIndex) {
+            btn.classList.add("keyboard-focus");
+            btn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+            btn.classList.remove("keyboard-focus");
+        }
+    });
+}
+
 function selectSingleOption(optIdx) {
+    keyboardFocusIndex = optIdx;
     userAnswers[currentIndex] = optIdx;
     renderQuestion();
 }
@@ -1025,23 +1054,42 @@ function finishQuiz() {
     }
 }
 
-/* 新增：鍵盤左右鍵快捷鍵監聽 */
+/* 擴增：支援上下鍵選擇選項、空白鍵確認、左右鍵切換題目 */
 document.addEventListener('keydown', function(event) {
-    // 避免在輸入框打字時誤觸
     if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') {
         return;
     }
 
     const quizView = document.getElementById('view-quiz');
     if (quizView && !quizView.classList.contains('hidden')) {
+        const qData = currentQuestions[currentIndex];
+        const optionsCount = qData.options.length;
+
         if (event.key === 'ArrowRight') {
+            event.preventDefault();
             nextQuestion();
         } else if (event.key === 'ArrowLeft') {
+            event.preventDefault();
             prevQuestion();
+        } else if (event.key === 'ArrowDown') {
+            event.preventDefault();
+            keyboardFocusIndex = (keyboardFocusIndex + 1) % optionsCount;
+            updateKeyboardFocus();
+        } else if (event.key === 'ArrowUp') {
+            event.preventDefault();
+            keyboardFocusIndex = (keyboardFocusIndex - 1 + optionsCount) % optionsCount;
+            updateKeyboardFocus();
+        } else if (event.key === ' ' || event.code === 'Space') {
+            // 空白鍵：模擬點擊目前焦點所在的選項
+            event.preventDefault();
+            const optionsContainer = document.getElementById("q-options");
+            const optionBtns = optionsContainer.querySelectorAll(".option-btn");
+            if (optionBtns[keyboardFocusIndex]) {
+                optionBtns[keyboardFocusIndex].click();
+            }
         }
     }
 });
-
 </script>
 
 </body>
