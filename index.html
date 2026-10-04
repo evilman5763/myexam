@@ -1064,18 +1064,19 @@ document.addEventListener('keydown', function(event) {
     if (quizView && !quizView.classList.contains('hidden')) {
         const qData = currentQuestions[currentIndex];
         const optionsCount = qData.options.length;
+		const key = event.key.toLowerCase(); // 統一轉小寫以支援大小寫 W/A/S/D
 
-        if (event.key === 'ArrowRight') {
+        if (event.key === 'ArrowRight' || key === 'd') {
             event.preventDefault();
             nextQuestion();
-        } else if (event.key === 'ArrowLeft') {
+        } else if (event.key === 'ArrowLeft' || key === 'a') {
             event.preventDefault();
             prevQuestion();
-        } else if (event.key === 'ArrowDown') {
+        } else if (event.key === 'ArrowDown' || key === 's') {
             event.preventDefault();
             keyboardFocusIndex = (keyboardFocusIndex + 1) % optionsCount;
             updateKeyboardFocus();
-        } else if (event.key === 'ArrowUp') {
+        } else if (event.key === 'ArrowUp' || key === 'w') {
             event.preventDefault();
             keyboardFocusIndex = (keyboardFocusIndex - 1 + optionsCount) % optionsCount;
             updateKeyboardFocus();
