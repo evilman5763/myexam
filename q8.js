@@ -773,7 +773,7 @@ window.questionBank[8] = [
     },
     {
         q: "下列何者是本行電子化收款業務即時銷帳通知的傳輸方式？",
-        options: ["HTTPS", "FTP", "E-mail"],
+        options: ["HTTPS", "SFTP", "E-mail"],
         ans: [0, 1] // (1 2)
     },
     {
@@ -783,7 +783,7 @@ window.questionBank[8] = [
     },
     {
         q: "以下何者可以是本行電子化收款（14位）的收款管道？",
-        options: ["本行臨櫃繳款", "他行櫃檯匯款", "由ATM轉入"],
+        options: ["本行臨櫃繳款", "他行櫃台匯款", "由ATM轉入"],
         ans: [0, 1, 2] // (123)
     },
     {
