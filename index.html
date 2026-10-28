@@ -501,7 +501,7 @@
         </div>
         
         <div class="menu-grid" id="menu-options">
-            <button class="menu-btn random-mode" onclick="startQuiz('random')">🎲 全篇章隨機亂數 50 題</button>
+            <button class="menu-btn random-mode" onclick="startQuiz('random')">🎲 全篇章隨機 100 題 (80單選+20多選)</button>
             <button class="menu-btn" onclick="selectChapter(1)">第一篇：存匯</button>
             <button class="menu-btn" onclick="selectChapter(2)">第二篇：授信</button>
             <button class="menu-btn" onclick="selectChapter(3)">第三篇：外匯</button>
@@ -532,7 +532,7 @@
     <div id="view-quiz" class="hidden">
         <div class="quiz-header">
             <span class="chapter-tag" id="quiz-chapter-title">第篇</span>
-            <span id="quiz-progress" style="font-weight: bold; color: var(--primary-color);">題號：1 / 50</span>
+            <span id="quiz-progress" style="font-weight: bold; color: var(--primary-color);">題號：1 / 100</span>
         </div>
 
         <div class="question-title" id="q-text">載入題目中...</div>
@@ -714,7 +714,7 @@ let userAnswers = {};
 let pendingChapter = null; 
 let currentQuizTitle = "";
 let currentChapterKey = 0;
-let keyboardFocusIndex = 0; // 新增：追蹤目前鍵盤移動到的選項位置
+let keyboardFocusIndex = 0;
 
 window.onload = function() {
     renderHistoryStats();
@@ -760,11 +760,25 @@ function startQuiz(chapter) {
         for (let c in questionBank) {
             rawPool = rawPool.concat(questionBank[c]);
         }
+        
+        // 篩選出單選題與多選題
+        let singleChoicePool = rawPool.filter(q => !Array.isArray(q.ans));
+        let multiChoicePool = rawPool.filter(q => Array.isArray(q.ans));
+
+        // 隨機洗牌
+        let shuffledSingle = [...singleChoicePool].sort(() => Math.random() - 0.5);
+        let shuffledMulti = [...multiChoicePool].sort(() => Math.random() - 0.5);
+
+        // 取前 80 題單選、前 20 題多選
+        let selectedSingle = shuffledSingle.slice(0, 80);
+        let selectedMulti = shuffledMulti.slice(0, 20);
+
         currentChapterKey = 0;
-        currentQuizTitle = "全篇章隨機 50 題";
+        currentQuizTitle = "全篇章隨機 100 題 (80單選+20多選)";
         document.getElementById("quiz-chapter-title").innerText = currentQuizTitle;
-        let shuffled = [...rawPool].sort(() => Math.random() - 0.5);
-        currentQuestions = shuffled.slice(0, 50);
+        
+        // 合併並組成 100 題
+        currentQuestions = [...selectedSingle, ...selectedMulti];
         
         launchQuizView();
     }
@@ -863,7 +877,8 @@ function renderQuestion() {
     resultBox.style.display = "none";
 
     let savedAns = userAnswers[currentIndex];
-    keyboardFocusIndex = 0; // 每次換題或重新渲染時，重設焦點在第一個選項
+    keyboardFocusIndex =.0; // 每次換題或重新渲染時，重設焦點在第一個選項
+    keyboardFocusIndex = 0;
 
     if (isMulti) {
         let selectedSet = new Set(Array.isArray(savedAns) ? savedAns : []);
@@ -915,11 +930,8 @@ function renderQuestion() {
     nextBtn.innerText = (currentIndex === currentQuestions.length - 1) ? "完成交卷" : "下一題";
 }
 
-// 新增：更新畫面上各選項的鍵盤焦點框線
 function updateKeyboardFocus() {
-    const qData = currentQuestions[currentIndex];
     const optionsContainer = document.getElementById("q-options");
-    // 找出所有選項按鈕（排除可能存在的確認提交按鈕）
     const optionBtns = optionsContainer.querySelectorAll(".option-btn");
     
     optionBtns.forEach((btn, idx) => {
@@ -1054,7 +1066,7 @@ function finishQuiz() {
     }
 }
 
-/* 擴增：支援上下鍵選擇選項、空白鍵確認、左右鍵切換題目 */
+/* 鍵盤控制擴增：支援方向鍵與 WASD 鍵同步對應 */
 document.addEventListener('keydown', function(event) {
     if (document.activeElement.tagName === 'INPUT' || document.activeElement.tagName === 'SELECT') {
         return;
@@ -1064,7 +1076,7 @@ document.addEventListener('keydown', function(event) {
     if (quizView && !quizView.classList.contains('hidden')) {
         const qData = currentQuestions[currentIndex];
         const optionsCount = qData.options.length;
-		const key = event.key.toLowerCase(); // 統一轉小寫以支援大小寫 W/A/S/D
+        const key = event.key.toLowerCase();
 
         if (event.key === 'ArrowRight' || key === 'd') {
             event.preventDefault();
@@ -1081,7 +1093,6 @@ document.addEventListener('keydown', function(event) {
             keyboardFocusIndex = (keyboardFocusIndex - 1 + optionsCount) % optionsCount;
             updateKeyboardFocus();
         } else if (event.key === ' ' || event.code === 'Space') {
-            // 空白鍵：模擬點擊目前焦點所在的選項
             event.preventDefault();
             const optionsContainer = document.getElementById("q-options");
             const optionBtns = optionsContainer.querySelectorAll(".option-btn");
